@@ -31,7 +31,7 @@ public class RenderedCompactJsonFormatter : ITextFormatter
     readonly IFormatProvider? _formatProvider;
 
     /// <summary>
-    /// Construct a <see cref="CompactJsonFormatter"/>, optionally supplying a formatter for
+    /// Construct a <see cref="RenderedCompactJsonFormatter"/>, optionally supplying a formatter for
     /// <see cref="LogEventPropertyValue"/>s on the event.
     /// </summary>
     /// <param name="valueFormatter">A value formatter, or null.</param>
