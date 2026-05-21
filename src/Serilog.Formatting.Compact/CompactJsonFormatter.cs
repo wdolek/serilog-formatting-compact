@@ -29,6 +29,7 @@ namespace Serilog.Formatting.Compact;
 public class CompactJsonFormatter: ITextFormatter
 {
     readonly JsonValueFormatter _valueFormatter;
+    readonly IFormatProvider? _formatProvider;
 
     /// <summary>
     /// Construct a <see cref="CompactJsonFormatter"/>, optionally supplying a formatter for
@@ -41,13 +42,25 @@ public class CompactJsonFormatter: ITextFormatter
     }
 
     /// <summary>
+    /// Construct a <see cref="CompactJsonFormatter"/>, optionally supplying a formatter for
+    /// <see cref="LogEventPropertyValue"/>s on the event, and a format provider.
+    /// </summary>
+    /// <param name="valueFormatter">A value formatter, or null.</param>
+    /// <param name="formatProvider">A format provider to apply when rendering message variables, or null.</param>
+    public CompactJsonFormatter(JsonValueFormatter? valueFormatter, IFormatProvider? formatProvider)
+    {
+        _valueFormatter = valueFormatter ?? new JsonValueFormatter(typeTagName: "$type");
+        _formatProvider = formatProvider;
+    }
+
+    /// <summary>
     /// Format the log event into the output. Subsequent events will be newline-delimited.
     /// </summary>
     /// <param name="logEvent">The event to format.</param>
     /// <param name="output">The output.</param>
     public void Format(LogEvent logEvent, TextWriter output)
     {
-        FormatEvent(logEvent, output, _valueFormatter);
+        FormatEvent(logEvent, output, _valueFormatter, _formatProvider);
         output.WriteLine();
     }
 
@@ -58,6 +71,18 @@ public class CompactJsonFormatter: ITextFormatter
     /// <param name="output">The output.</param>
     /// <param name="valueFormatter">A value formatter for <see cref="LogEventPropertyValue"/>s on the event.</param>
     public static void FormatEvent(LogEvent logEvent, TextWriter output, JsonValueFormatter valueFormatter)
+    {
+        FormatEvent(logEvent, output, valueFormatter, null);
+    }
+
+    /// <summary>
+    /// Format the log event into the output.
+    /// </summary>
+    /// <param name="logEvent">The event to format.</param>
+    /// <param name="output">The output.</param>
+    /// <param name="valueFormatter">A value formatter for <see cref="LogEventPropertyValue"/>s on the event.</param>
+    /// <param name="formatProvider">A format provider to apply when rendering message variables, or null.</param>
+    public static void FormatEvent(LogEvent logEvent, TextWriter output, JsonValueFormatter valueFormatter, IFormatProvider? formatProvider)
     {
         if (logEvent == null) throw new ArgumentNullException(nameof(logEvent));
         if (output == null) throw new ArgumentNullException(nameof(output));
@@ -84,7 +109,7 @@ public class CompactJsonFormatter: ITextFormatter
                 output.Write(delim);
                 delim = ",";
                 var space = new StringWriter();
-                r.Render(logEvent.Properties, space, CultureInfo.InvariantCulture);
+                r.Render(logEvent.Properties, space, formatProvider);
                 JsonValueFormatter.WriteQuotedJsonString(space.ToString(), output);
             }
             output.Write(']');
