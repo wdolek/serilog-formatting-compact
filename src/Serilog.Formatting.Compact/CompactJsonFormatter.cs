@@ -109,7 +109,7 @@ public class CompactJsonFormatter: ITextFormatter
                 output.Write(delim);
                 delim = ",";
                 var space = new StringWriter();
-                r.Render(logEvent.Properties, space, formatProvider);
+                r.Render(logEvent.Properties, space, formatProvider ?? CultureInfo.InvariantCulture);
                 JsonValueFormatter.WriteQuotedJsonString(space.ToString(), output);
             }
             output.Write(']');

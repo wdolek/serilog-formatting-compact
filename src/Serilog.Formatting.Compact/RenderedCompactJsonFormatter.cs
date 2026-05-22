@@ -90,7 +90,7 @@ public class RenderedCompactJsonFormatter : ITextFormatter
         output.Write("{\"@t\":\"");
         output.Write(logEvent.Timestamp.UtcDateTime.ToString("O"));
         output.Write("\",\"@m\":");
-        var message = logEvent.MessageTemplate.Render(logEvent.Properties, formatProvider);
+        var message = logEvent.MessageTemplate.Render(logEvent.Properties, formatProvider ?? CultureInfo.InvariantCulture);
         JsonValueFormatter.WriteQuotedJsonString(message, output);
         output.Write(",\"@i\":\"");
         var id = EventIdHash.Compute(logEvent.MessageTemplate.Text);
