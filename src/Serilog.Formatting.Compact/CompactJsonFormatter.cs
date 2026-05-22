@@ -46,7 +46,7 @@ public class CompactJsonFormatter: ITextFormatter
     /// <see cref="LogEventPropertyValue"/>s on the event, and a format provider.
     /// </summary>
     /// <param name="valueFormatter">A value formatter, or null.</param>
-    /// <param name="formatProvider">A format provider to apply when rendering message variables, or null.</param>
+    /// <param name="formatProvider">A format provider to apply when rendering message variables. If null, defaults to <see cref="CultureInfo.InvariantCulture"/>.</param>
     public CompactJsonFormatter(JsonValueFormatter? valueFormatter, IFormatProvider? formatProvider)
     {
         _valueFormatter = valueFormatter ?? new JsonValueFormatter(typeTagName: "$type");
@@ -81,7 +81,7 @@ public class CompactJsonFormatter: ITextFormatter
     /// <param name="logEvent">The event to format.</param>
     /// <param name="output">The output.</param>
     /// <param name="valueFormatter">A value formatter for <see cref="LogEventPropertyValue"/>s on the event.</param>
-    /// <param name="formatProvider">A format provider to apply when rendering message variables, or null.</param>
+    /// <param name="formatProvider">A format provider to apply when rendering message variables. If null, defaults to <see cref="CultureInfo.InvariantCulture"/>.</param>
     public static void FormatEvent(LogEvent logEvent, TextWriter output, JsonValueFormatter valueFormatter, IFormatProvider? formatProvider)
     {
         if (logEvent == null) throw new ArgumentNullException(nameof(logEvent));
