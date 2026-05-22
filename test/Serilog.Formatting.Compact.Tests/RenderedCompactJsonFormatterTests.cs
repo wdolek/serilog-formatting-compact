@@ -1,7 +1,8 @@
-﻿using System;
-using Newtonsoft.Json.Linq;
-using Xunit;
+﻿using Newtonsoft.Json.Linq;
 using Serilog.Formatting.Compact.Tests.Support;
+using System;
+using System.Globalization;
+using Xunit;
 
 
 namespace Serilog.Formatting.Compact.Tests
@@ -74,6 +75,34 @@ namespace Serilog.Formatting.Compact.Tests
             JToken val;
             Assert.True(jobject.TryGetValue("@@Mistake", out val));
             Assert.Equal(42, val.ToObject<int>());
+        }
+
+        [Fact]
+        public void RespectsCustomFormatProviderForMessageRendering()
+        {
+            var frenchCulture = new CultureInfo("fr-FR");
+            var formatter = new RenderedCompactJsonFormatter(null, frenchCulture);
+
+            var jobject = Assertions.AssertValidJson(formatter, log => log.Information("Total: {Money:0.00}", 1.23));
+
+            JToken m;
+            Assert.True(jobject.TryGetValue("@m", out m));
+
+            Assert.Equal("Total: 1,23", m.ToObject<string>());
+        }
+
+        [Fact]
+        public void DefaultsToInvariantCultureWhenFormatProviderIsNull()
+        {
+            var formatter = new RenderedCompactJsonFormatter(null, null);
+
+            var jobject = Assertions.AssertValidJson(formatter, log => log.Information("Total: {Money:0.00}", 1.23));
+
+            JToken m;
+            Assert.True(jobject.TryGetValue("@m", out m));
+
+            // Should stay invariant (period) to match the v2 default
+            Assert.Equal("Total: 1.23", m.ToObject<string>());
         }
     }
 }
