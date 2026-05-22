@@ -43,6 +43,7 @@ public class RenderedCompactJsonFormatter : ITextFormatter
     /// <summary>
     /// Construct a <see cref="CompactJsonFormatter"/>, optionally supplying a formatter for
     /// <see cref="LogEventPropertyValue"/>s on the event, and a format provider.
+    /// By default, message templates are rendered using <see cref="CultureInfo.InvariantCulture"/> if no provider is specified.
     /// </summary>
     /// <param name="valueFormatter">A value formatter, or null.</param>
     /// <param name="formatProvider">A format provider to apply when rendering message variables. If null, defaults to <see cref="CultureInfo.InvariantCulture"/>.</param>
@@ -76,6 +77,7 @@ public class RenderedCompactJsonFormatter : ITextFormatter
 
     /// <summary>
     /// Format the log event into the output.
+    /// By default, message templates are rendered using <see cref="CultureInfo.InvariantCulture"/> if no provider is specified.
     /// </summary>
     /// <param name="logEvent">The event to format.</param>
     /// <param name="output">The output.</param>
