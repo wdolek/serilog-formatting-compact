@@ -28,9 +28,10 @@ namespace Serilog.Formatting.Compact;
 public class RenderedCompactJsonFormatter : ITextFormatter
 {
     readonly JsonValueFormatter _valueFormatter;
+    readonly IFormatProvider? _formatProvider;
 
     /// <summary>
-    /// Construct a <see cref="CompactJsonFormatter"/>, optionally supplying a formatter for
+    /// Construct a <see cref="RenderedCompactJsonFormatter"/>, optionally supplying a formatter for
     /// <see cref="LogEventPropertyValue"/>s on the event.
     /// </summary>
     /// <param name="valueFormatter">A value formatter, or null.</param>
@@ -40,13 +41,26 @@ public class RenderedCompactJsonFormatter : ITextFormatter
     }
 
     /// <summary>
+    /// Construct a <see cref="CompactJsonFormatter"/>, optionally supplying a formatter for
+    /// <see cref="LogEventPropertyValue"/>s on the event, and a format provider.
+    /// By default, message templates are rendered using <see cref="CultureInfo.InvariantCulture"/> if no provider is specified.
+    /// </summary>
+    /// <param name="valueFormatter">A value formatter, or null.</param>
+    /// <param name="formatProvider">A format provider to apply when rendering message variables. If null, defaults to <see cref="CultureInfo.InvariantCulture"/>.</param>
+    public RenderedCompactJsonFormatter(JsonValueFormatter? valueFormatter, IFormatProvider? formatProvider)
+    {
+        _valueFormatter = valueFormatter ?? new JsonValueFormatter(typeTagName: "$type");
+        _formatProvider = formatProvider;
+    }
+
+    /// <summary>
     /// Format the log event into the output. Subsequent events will be newline-delimited.
     /// </summary>
     /// <param name="logEvent">The event to format.</param>
     /// <param name="output">The output.</param>
     public void Format(LogEvent logEvent, TextWriter output)
     {
-        FormatEvent(logEvent, output, _valueFormatter);
+        FormatEvent(logEvent, output, _valueFormatter, _formatProvider);
         output.WriteLine();
     }
 
@@ -58,6 +72,19 @@ public class RenderedCompactJsonFormatter : ITextFormatter
     /// <param name="valueFormatter">A value formatter for <see cref="LogEventPropertyValue"/>s on the event.</param>
     public static void FormatEvent(LogEvent logEvent, TextWriter output, JsonValueFormatter valueFormatter)
     {
+        FormatEvent(logEvent, output, valueFormatter, null);
+    }
+
+    /// <summary>
+    /// Format the log event into the output.
+    /// By default, message templates are rendered using <see cref="CultureInfo.InvariantCulture"/> if no provider is specified.
+    /// </summary>
+    /// <param name="logEvent">The event to format.</param>
+    /// <param name="output">The output.</param>
+    /// <param name="valueFormatter">A value formatter for <see cref="LogEventPropertyValue"/>s on the event.</param>
+    /// <param name="formatProvider">A format provider to apply when rendering message variables. If null, defaults to <see cref="CultureInfo.InvariantCulture"/>.</param>
+    public static void FormatEvent(LogEvent logEvent, TextWriter output, JsonValueFormatter valueFormatter, IFormatProvider? formatProvider)
+    {
         if (logEvent == null) throw new ArgumentNullException(nameof(logEvent));
         if (output == null) throw new ArgumentNullException(nameof(output));
         if (valueFormatter == null) throw new ArgumentNullException(nameof(valueFormatter));
@@ -65,7 +92,7 @@ public class RenderedCompactJsonFormatter : ITextFormatter
         output.Write("{\"@t\":\"");
         output.Write(logEvent.Timestamp.UtcDateTime.ToString("O"));
         output.Write("\",\"@m\":");
-        var message = logEvent.MessageTemplate.Render(logEvent.Properties, CultureInfo.InvariantCulture);
+        var message = logEvent.MessageTemplate.Render(logEvent.Properties, formatProvider ?? CultureInfo.InvariantCulture);
         JsonValueFormatter.WriteQuotedJsonString(message, output);
         output.Write(",\"@i\":\"");
         var id = EventIdHash.Compute(logEvent.MessageTemplate.Text);

@@ -1,11 +1,12 @@
-﻿using System;
-using System.Diagnostics;
-using System.Linq;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using Serilog.Events;
-using Xunit;
 using Serilog.Formatting.Compact.Tests.Support;
 using Serilog.Parsing;
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+using Xunit;
 
 
 namespace Serilog.Formatting.Compact.Tests
@@ -93,6 +94,35 @@ namespace Serilog.Formatting.Compact.Tests
             var json = AssertValidJson(log => log.Write(evt));
             Assert.Equal(traceId.ToHexString(), json["@tr"]);
             Assert.Equal(spanId.ToHexString(), json["@sp"]);
+        }
+
+        [Fact]
+        public void RespectsCustomFormatProviderForRenderingsArray()
+        {
+            var frenchCulture = new CultureInfo("fr-FR");
+            var formatter = new CompactJsonFormatter(null, frenchCulture);
+
+            var jobject = Assertions.AssertValidJson(formatter, log => log.Information("Total: {Money:0.00}", 1.23));
+
+            JToken r;
+            Assert.True(jobject.TryGetValue("@r", out r));
+            var renderings = r.ToObject<string[]>();
+
+            Assert.Contains("1,23", renderings);
+        }
+
+        [Fact]
+        public void DefaultsToInvariantCultureWhenFormatProviderIsNull()
+        {
+            var formatter = new CompactJsonFormatter(null, null);
+
+            var jobject = Assertions.AssertValidJson(formatter, log => log.Information("Total: {Money:0.00}", 1.23));
+
+            JToken r;
+            Assert.True(jobject.TryGetValue("@r", out r));
+            var renderings = r.ToObject<string[]>();
+
+            Assert.Contains("1.23", renderings);
         }
     }
 }
